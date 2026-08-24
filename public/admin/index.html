@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>لوحة المدير - مسابقة المحينك</title>
+<link rel="stylesheet" href="/shared/styles.css" />
+<link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+<div class="container">
+  <h1>🕹️ لوحة تحكم المدير</h1>
+
+  <div id="setupCard" class="card">
+    <h3>إنشاء / الانضمام لغرفة</h3>
+    <button id="createRoomBtn">إنشاء غرفة جديدة</button>
+    <span> أو </span>
+    <input id="joinCodeInput" placeholder="كود غرفة موجودة" maxlength="4" style="text-transform:uppercase" />
+    <button id="joinRoomBtn" class="secondary">انضمام كمدير</button>
+  </div>
+
+  <div id="roomInfo" class="card" style="display:none">
+    <h3>كود الغرفة: <span id="roomCodeLabel" style="color:#4ade80"></span></h3>
+    <p>حالة اللعبة: <span id="roomStatusLabel"></span></p>
+
+    <div id="teamMgmt">
+      <h4>الفرق</h4>
+      <div id="teamsList"></div>
+      <input id="newTeamName" placeholder="اسم فريق جديد" />
+      <button id="addTeamBtn">إضافة فريق</button>
+      <div style="margin-top:12px">
+        <button id="startGameBtn" disabled>بدء اللعبة</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="playControls" class="card" style="display:none">
+    <h3>التحكم بالأسئلة</h3>
+    <div id="questionBankArea"></div>
+    <div id="activeQuestionArea" class="card" style="background:#1e3a8a"></div>
+
+    <h3>تنفيذ قصف</h3>
+    <div class="card">
+      <label>الفريق المستهدف: </label>
+      <select id="targetTeamSelect"></select>
+      <div id="bombGrid" style="margin-top:12px"></div>
+    </div>
+
+    <h3>لوحة النقاط والفرق</h3>
+    <div class="teams-row" id="teamsScoreRow"></div>
+
+    <div style="text-align:center;margin-top:20px">
+      <button id="finishGameBtn" class="danger">إنهاء المباراة</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📚 بنك الأسئلة</h3>
+    <div>
+      <input id="qText" placeholder="نص السؤال" style="width:300px" />
+      <select id="qType">
+        <option value="group">جماعي</option>
+        <option value="team">لفريق معين</option>
+      </select>
+      <input id="qAnswer" placeholder="الإجابة (اختياري)" />
+      <button id="addQuestionBtn">إضافة للبنك</button>
+    </div>
+    <ul id="fullQuestionList"></ul>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/shared/board.js"></script>
+<script src="./admin.js"></script>
+</body>
+</html>

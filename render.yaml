@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mosabaqa-game
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mosabaqa-db
+          property: connectionString
+
+databases:
+  - name: mosabaqa-db
+    plan: free

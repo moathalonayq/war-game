@@ -1,0 +1,3 @@
+#teamSelectArea { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+#teamSelectArea button { background: #334155; }
+#teamSelectArea button.taken { opacity: 0.5; cursor: not-allowed; }
