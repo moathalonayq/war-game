@@ -7,7 +7,7 @@
 }
 
 .teams-row {
-  display: flex !important;
+  display: flex;
   flex-wrap: nowrap; /* Keep them side by side if possible */
   justify-content: center;
   align-items: stretch;

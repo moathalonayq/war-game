@@ -58,8 +58,7 @@ function renderRoom(room) {
   if (inPlay) {
     renderQuestionBank();
     renderActiveQuestion(room);
-    renderTargetSelect(room, t.id);
-    renderBombGrid();
+    renderTargetSelect(room); // Renders the manual bomb selector
     renderTeamsScoreRow(room);
   }
 }
@@ -223,23 +222,25 @@ function renderActiveQuestion(room) {
   area.appendChild(clearBtn);
 }
 
-function renderTargetSelect(room, excludeTeamId = null) {
+function renderTargetSelect(room) {
   const select = document.getElementById('targetTeamSelect');
+  if (!select) return;
   const prev = select.value;
   select.innerHTML = '';
   Object.values(room.teams).forEach((t) => {
-    if (t.id === excludeTeamId) return;
     const opt = document.createElement('option');
     opt.value = t.id;
     opt.textContent = t.name;
     select.appendChild(opt);
   });
-  if (prev) select.value = prev;
+  if (prev && select.querySelector(`option[value="${prev}"]`)) select.value = prev;
   select.onchange = renderBombGrid;
+  renderBombGrid();
 }
 
 function renderBombGrid() {
   const select = document.getElementById('targetTeamSelect');
+  if (!select) return;
   const teamId = select.value;
   const team = currentRoom.teams[teamId];
   const container = document.getElementById('bombGrid');
@@ -247,15 +248,27 @@ function renderBombGrid() {
     container.innerHTML = '';
     return;
   }
+  
+  container.innerHTML = '';
   window.BoardUtils.buildBoardGrid({
     container,
     cellsData: team.hitBoard,
     mode: 'hit',
     onCellClick: (i) => {
-      if (team.hitBoard[i]) return; // مقصوف مسبقًا
+      if (team.hitBoard[i]) return;
       if (!confirm(`تأكيد قصف مربع رقم ${i + 1} في فريق ${team.name}؟`)) return;
       socket.emit('admin_execute_bomb', { code: roomCode, targetTeamId: teamId, cellIndex: i }, (res) => {
-        if (!res.ok) alert(res.error);
+        if (!res.ok) return alert(res.error);
+        
+        const log = document.getElementById('bombResultLog');
+        if (res.result.units.length === 0) {
+          log.style.color = '#ef4444';
+          log.textContent = `🎯 نتيجة آخر قصف: المربع فارغ! (لا توجد وحدات)`;
+        } else {
+          log.style.color = '#4ade80';
+          const unitsString = res.result.units.map(u => window.BoardUtils.unitIcon(u.unit)).join(' ');
+          log.textContent = `🎯 نتيجة آخر قصف: تم تدمير [ ${unitsString} ] وخسارة ${res.result.value} نقطة!`;
+        }
       });
     },
   });

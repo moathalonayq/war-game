@@ -1,6 +1,14 @@
 const socket = io();
 let roomCode = null;
 
+document.getElementById('fullscreenBtn').addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => console.log(err));
+  } else {
+    document.exitFullscreen();
+  }
+});
+
 document.getElementById('joinBtn').addEventListener('click', () => {
   const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
   if (!code) return;
