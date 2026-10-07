@@ -130,13 +130,31 @@ function registerSocketHandlers(io) {
         const room = gs.getRoom(code);
         if (!room) throw new Error('الغرفة غير موجودة');
         if (room.bomberTeamId !== teamId) throw new Error('لست الفريق المخول بالقصف حالياً');
+        
+        const sourceTeam = room.teams[teamId];
+        const targetTeam = room.teams[targetTeamId];
+        
         const { result } = gs.executeBomb(room, targetTeamId, cellIndex);
         room.bomberTeamId = null; // سحب الصلاحية بعد القصف
+        
         if (!result.hit) {
            io.to(room.code + '_public').emit('bomb_missed');
         }
+        
+        // Notify admin about the team's bomb result
+        io.to(room.code + '_admin').emit('admin_bomb_log', {
+           sourceName: sourceTeam.name,
+           targetName: targetTeam.name,
+           cellIndex,
+           result
+        });
+        
         broadcastRoom(io, room);
         cb && cb({ ok: true, result });
+      } catch (e) {
+        cb && cb({ ok: false, error: e.message });
+      }
+    });
       } catch (e) {
         cb && cb({ ok: false, error: e.message });
       }

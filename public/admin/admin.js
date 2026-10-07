@@ -296,3 +296,16 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('joinRoomBtn').click();
   }
 });
+
+
+socket.on('admin_bomb_log', ({ sourceName, targetName, cellIndex, result }) => {
+  const log = document.getElementById('bombResultLog');
+  if (result.units.length === 0) {
+    log.style.color = '#ef4444';
+    log.textContent = `🎯 قام فريق [${sourceName}] بقصف [${targetName}] (مربع ${cellIndex + 1}): المربع فارغ!`;
+  } else {
+    log.style.color = '#4ade80';
+    const unitsString = result.units.map(u => window.BoardUtils.unitIcon(u.unit)).join(' ');
+    log.textContent = `🎯 قام فريق [${sourceName}] بقصف [${targetName}] (مربع ${cellIndex + 1}): تم تدمير [ ${unitsString} ] وخسارة ${result.value} نقطة!`;
+  }
+});

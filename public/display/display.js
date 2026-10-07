@@ -53,6 +53,7 @@ socket.on('game_finished', ({ ranking }) => {
     `;
   };
 
+
   // DOM Order: Rank 2 (Left), Rank 1 (Center), Rank 3 (Right)
   podium.innerHTML = `
     ${createStep(rank2, 2, '🥈')}
@@ -60,30 +61,35 @@ socket.on('game_finished', ({ ranking }) => {
     ${createStep(rank3, 3, '🥉')}
   `;
 
-  // Reveal Sequence: 3rd -> 1st -> 2nd
-  setTimeout(() => {
-    if (rank3) {
-      document.getElementById('step-3').classList.add('revealed');
-      setTimeout(() => document.getElementById('medal-3').style.opacity = '1', 1000);
-    }
-  }, 1000);
+  // Control via Enter key
+  window.podiumSteps = [
+    { rankNum: 3, rankInfo: rank3 },
+    { rankNum: 1, rankInfo: rank1 },
+    { rankNum: 2, rankInfo: rank2 }
+  ];
+  window.currentRevealIndex = 0;
+});
 
-  setTimeout(() => {
-    if (rank1) {
-      document.getElementById('step-1').classList.add('revealed');
-      setTimeout(() => document.getElementById('medal-1').style.opacity = '1', 1000);
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const finishArea = document.getElementById('finishArea');
+    if (finishArea && finishArea.style.display === 'block') {
+      if (window.podiumSteps && window.currentRevealIndex < window.podiumSteps.length) {
+        const step = window.podiumSteps[window.currentRevealIndex];
+        if (step.rankInfo) {
+          const el = document.getElementById(`step-${step.rankNum}`);
+          if (el) el.classList.add('revealed');
+          const medalEl = document.getElementById(`medal-${step.rankNum}`);
+          if (medalEl) setTimeout(() => medalEl.style.opacity = '1', 500);
+        }
+        window.currentRevealIndex++;
+      }
     }
-  }, 4500);
-
-  setTimeout(() => {
-    if (rank2) {
-      document.getElementById('step-2').classList.add('revealed');
-      setTimeout(() => document.getElementById('medal-2').style.opacity = '1', 1000);
-    }
-  }, 8000);
+  }
 });
 
 function render(room) {
+
   const banner = document.getElementById('questionBanner');
   
   const bigQ = document.getElementById('bigQuestionArea');
