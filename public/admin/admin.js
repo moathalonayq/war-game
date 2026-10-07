@@ -297,6 +297,14 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+document.getElementById('leaveRoomBtn').addEventListener('click', () => {
+  if(confirm('هل أنت متأكد أنك تريد الخروج من الغرفة؟')) {
+    localStorage.removeItem('admin_code');
+    localStorage.removeItem('admin_pin');
+    location.reload();
+  }
+});
+
 
 socket.on('admin_bomb_log', ({ sourceName, targetName, cellIndex, result }) => {
   const log = document.getElementById('bombResultLog');
