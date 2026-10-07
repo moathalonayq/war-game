@@ -9,7 +9,7 @@ const DEFAULT_UNITS = {
 
 const rooms = new Map();
 
-function createRoom({ unitConfig } = {}) {
+function createRoom({ unitConfig, adminPin } = {}) {
   let code;
   do {
     code = genCode();
@@ -17,6 +17,7 @@ function createRoom({ unitConfig } = {}) {
 
   const room = {
     code,
+    adminPin,
     status: 'setup', // setup | playing | finished
     unitConfig: unitConfig || DEFAULT_UNITS,
     teams: {}, // teamId -> team
@@ -40,6 +41,7 @@ function makeTeam(name) {
   return {
     id,
     name,
+    secret: Math.floor(1000 + Math.random() * 9000).toString(),
     socketId: null,
     connected: false,
     board: Array.from({ length: 25 }, () => []), // كل مربع: قائمة وحدات {unit,value} سرية
@@ -130,7 +132,7 @@ function finishGame(room) {
   return ranking;
 }
 
-function publicTeamsView(room, { revealBoards = false } = {}) {
+function publicTeamsView(room, { revealBoards = false, isAdmin = false } = {}) {
   const out = {};
   for (const [id, t] of Object.entries(room.teams)) {
     out[id] = {
@@ -141,6 +143,7 @@ function publicTeamsView(room, { revealBoards = false } = {}) {
       score: t.score,
       hitBoard: t.hitBoard,
       board: revealBoards ? t.board : undefined,
+      secret: isAdmin ? t.secret : undefined,
     };
   }
   return out;

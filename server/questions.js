@@ -7,7 +7,7 @@ const memQuestions = [];
 async function listQuestions() {
   const p = getPool();
   if (p) {
-    const { rows } = await p.query('SELECT * FROM questions ORDER BY created_at DESC');
+    const [rows] = await p.query('SELECT * FROM questions ORDER BY created_at DESC');
     return rows;
   }
   return [...memQuestions].reverse();
@@ -16,10 +16,11 @@ async function listQuestions() {
 async function addQuestion({ text, type, answer }) {
   const p = getPool();
   if (p) {
-    const { rows } = await p.query(
-      'INSERT INTO questions (text, type, answer) VALUES ($1, $2, $3) RETURNING *',
+    const [result] = await p.query(
+      'INSERT INTO questions (text, type, answer) VALUES (?, ?, ?)',
       [text, type, answer]
     );
+    const [rows] = await p.query('SELECT * FROM questions WHERE id = ?', [result.insertId]);
     return rows[0];
   }
   const q = { id: memId++, text, type, answer, created_at: new Date() };
@@ -30,7 +31,7 @@ async function addQuestion({ text, type, answer }) {
 async function deleteQuestion(id) {
   const p = getPool();
   if (p) {
-    await p.query('DELETE FROM questions WHERE id = $1', [id]);
+    await p.query('DELETE FROM questions WHERE id = ?', [id]);
     return;
   }
   const idx = memQuestions.findIndex((q) => q.id === Number(id));

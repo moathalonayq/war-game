@@ -1,17 +1,18 @@
 const gs = require('./gameState');
 
-function roomSummary(room) {
+function roomSummary(room, isAdmin = false) {
   return {
     code: room.code,
     status: room.status,
     unitConfig: room.unitConfig,
     currentQuestion: room.currentQuestion,
-    teams: gs.publicTeamsView(room),
+    teams: gs.publicTeamsView(room, { isAdmin }),
   };
 }
 
 function broadcastRoom(io, room) {
-  io.to(room.code).emit('room_updated', roomSummary(room));
+  io.to(room.code + '_admin').emit('room_updated', roomSummary(room, true));
+  io.to(room.code + '_public').emit('room_updated', roomSummary(room, false));
 }
 
 function registerSocketHandlers(io) {
@@ -22,23 +23,25 @@ function registerSocketHandlers(io) {
 
     socket.on('admin_create_room', (payload, cb) => {
       try {
-        const room = gs.createRoom({ unitConfig: payload && payload.unitConfig });
-        socket.join(room.code);
+        const adminPin = payload && payload.adminPin;
+        const room = gs.createRoom({ unitConfig: payload && payload.unitConfig, adminPin });
+        socket.join(room.code + '_admin');
         joinedRoomCode = room.code;
         isAdmin = true;
-        cb && cb({ ok: true, room: roomSummary(room) });
+        cb && cb({ ok: true, room: roomSummary(room, isAdmin) });
       } catch (e) {
         cb && cb({ ok: false, error: e.message });
       }
     });
 
-    socket.on('admin_join_room', ({ code }, cb) => {
+    socket.on('admin_join_room', ({ code, adminPin }, cb) => {
       const room = gs.getRoom(code);
       if (!room) return cb && cb({ ok: false, error: 'الغرفة غير موجودة' });
-      socket.join(room.code);
+      if (room.adminPin && room.adminPin !== adminPin) return cb && cb({ ok: false, error: 'كلمة المرور غير صحيحة' });
+      socket.join(room.code + '_admin');
       joinedRoomCode = room.code;
       isAdmin = true;
-      cb && cb({ ok: true, room: roomSummary(room) });
+      cb && cb({ ok: true, room: roomSummary(room, isAdmin) });
     });
 
     socket.on('admin_add_team', ({ code, name }, cb) => {
@@ -56,12 +59,13 @@ function registerSocketHandlers(io) {
       cb && cb({ ok: true, teams, status: room.status });
     });
 
-    socket.on('team_join_room', ({ code, teamId }, cb) => {
+    socket.on('team_join_room', ({ code, teamId, secret }, cb) => {
       const room = gs.getRoom(code);
       if (!room) return cb && cb({ ok: false, error: 'كود الغرفة غير صحيح' });
       const team = room.teams[teamId];
       if (!team) return cb && cb({ ok: false, error: 'الفريق غير موجود' });
-      socket.join(room.code);
+      if (team.secret && team.secret !== secret) return cb && cb({ ok: false, error: 'الرقم السري غير صحيح' });
+      socket.join(room.code + '_public');
       joinedRoomCode = room.code;
       joinedTeamId = teamId;
       team.socketId = socket.id;
@@ -134,9 +138,9 @@ function registerSocketHandlers(io) {
     socket.on('display_join_room', ({ code }, cb) => {
       const room = gs.getRoom(code);
       if (!room) return cb && cb({ ok: false, error: 'الغرفة غير موجودة' });
-      socket.join(room.code);
+      socket.join(room.code + '_public');
       joinedRoomCode = room.code;
-      cb && cb({ ok: true, room: roomSummary(room) });
+      cb && cb({ ok: true, room: roomSummary(room, isAdmin) });
     });
 
     socket.on('disconnect', () => {

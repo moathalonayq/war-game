@@ -36,7 +36,8 @@ document.getElementById('fetchTeamsBtn').addEventListener('click', () => {
 });
 
 function joinTeam(code, id) {
-  socket.emit('team_join_room', { code, teamId: id }, (res) => {
+  const secret = document.getElementById('teamSecretInput').value.trim();
+  socket.emit('team_join_room', { code, teamId: id, secret }, (res) => {
     if (!res.ok) return alert(res.error);
     roomCode = code;
     teamId = id;
@@ -113,7 +114,7 @@ function renderUnitPicker() {
   hint.style.textAlign = 'center';
   hint.style.color = '#94a3b8';
   hint.style.width = '100%';
-  hint.textContent = 'انقر على مربع لإضافة الوحدة المختارة (يمكن وضع أكثر من وحدة في نفس المربع) - انقر بالزر الأيمن لتفريغ المربع';
+  hint.textContent = 'انقر لإضافة الوحدة - انقر بالزر الأيمن لإزالة وحدة واحدة من المربع';
   picker.appendChild(hint);
 }
 
@@ -141,7 +142,7 @@ function renderPlacementGrid() {
   container.querySelectorAll('.board-cell').forEach((cellEl, i) => {
     cellEl.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      placements[i] = [];
+      if(placements[i].length > 0) placements[i].pop();
       document.getElementById('placementMsg').textContent = '';
       renderUnitPicker();
       renderPlacementGrid();
@@ -172,3 +173,28 @@ function showQuestion(q) {
   const area = document.getElementById('questionArea');
   area.innerHTML = `<div class="question-banner">${q.text}</div>`;
 }
+
+document.getElementById('randomBtn').addEventListener('click', () => {
+  placements = Array.from({ length: 25 }, () => []);
+  const pool = [];
+  Object.entries(unitConfig).forEach(([key, cfg]) => {
+    for(let i=0; i<cfg.count; i++) pool.push({ unit: key });
+  });
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  pool.forEach((u, i) => placements[i % 25].push(u));
+  document.getElementById('placementMsg').textContent = '';
+  renderUnitPicker();
+  renderPlacementGrid();
+  updateSubmitState();
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  placements = Array.from({ length: 25 }, () => []);
+  document.getElementById('placementMsg').textContent = '';
+  renderUnitPicker();
+  renderPlacementGrid();
+  updateSubmitState();
+});

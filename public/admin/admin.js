@@ -5,7 +5,8 @@ let questionBank = [];
 let bombTargetTeamId = null;
 
 document.getElementById('createRoomBtn').addEventListener('click', () => {
-  socket.emit('admin_create_room', {}, (res) => {
+  const adminPin = document.getElementById('createPinInput').value.trim();
+  socket.emit('admin_create_room', { adminPin }, (res) => {
     if (!res.ok) return alert(res.error);
     roomCode = res.room.code;
     onRoomJoined(res.room);
@@ -14,8 +15,9 @@ document.getElementById('createRoomBtn').addEventListener('click', () => {
 
 document.getElementById('joinRoomBtn').addEventListener('click', () => {
   const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+  const adminPin = document.getElementById('joinPinInput').value.trim();
   if (!code) return;
-  socket.emit('admin_join_room', { code }, (res) => {
+  socket.emit('admin_join_room', { code, adminPin }, (res) => {
     if (!res.ok) return alert(res.error);
     roomCode = res.room.code;
     onRoomJoined(res.room);
@@ -52,7 +54,7 @@ function renderRoom(room) {
   if (inPlay) {
     renderQuestionBank();
     renderActiveQuestion(room);
-    renderTargetSelect(room);
+    renderTargetSelect(room, t.id);
     renderBombGrid();
     renderTeamsScoreRow(room);
   }
@@ -68,9 +70,7 @@ function renderTeamsList(room) {
   list.innerHTML = '';
   Object.values(room.teams).forEach((t) => {
     const div = document.createElement('div');
-    div.textContent = `${t.name} — ${t.connected ? '🟢 متصل' : '⚪ غير متصل'} — ${
-      t.distributed ? '✅ وزّع جيشه' : '⏳ لم يوزّع بعد'
-    }`;
+    div.innerHTML = `<strong>${t.name}</strong> 🔑(الرقم السري: ${t.secret || 'بدون'}) — ${t.connected ? '🟢 متصل' : '⚪ غير متصل'} — ${t.distributed ? '✅ وزّع جيشه' : '⏳ لم يوزّع بعد'}`;
     list.appendChild(div);
   });
 }
@@ -116,6 +116,7 @@ function renderFullQuestionList() {
     delBtn.className = 'danger';
     delBtn.textContent = 'حذف';
     delBtn.addEventListener('click', async () => {
+      if(!confirm('هل أنت متأكد من حذف هذا السؤال؟')) return;
       await fetch('/api/questions/' + q.id, { method: 'DELETE' });
       loadQuestionBank();
     });
@@ -193,7 +194,7 @@ function renderActiveQuestion(room) {
     b.style.margin = '4px';
     b.addEventListener('click', () => {
       bombTargetTeamId = null;
-      renderTargetSelect(room);
+      renderTargetSelect(room, t.id);
       alert(`${t.name} أجاب صح! اختر الآن الفريق المستهدف والمربع بالأسفل لتنفيذ القصف.`);
     });
     btnRow.appendChild(b);
@@ -218,11 +219,12 @@ function renderActiveQuestion(room) {
   area.appendChild(clearBtn);
 }
 
-function renderTargetSelect(room) {
+function renderTargetSelect(room, excludeTeamId = null) {
   const select = document.getElementById('targetTeamSelect');
   const prev = select.value;
   select.innerHTML = '';
   Object.values(room.teams).forEach((t) => {
+    if (t.id === excludeTeamId) return;
     const opt = document.createElement('option');
     opt.value = t.id;
     opt.textContent = t.name;
