@@ -7,6 +7,7 @@ document.getElementById('joinBtn').addEventListener('click', () => {
   socket.emit('display_join_room', { code }, (res) => {
     if (!res.ok) return alert(res.error);
     roomCode = code;
+    localStorage.setItem('display_code', code);
     document.getElementById('joinBar').style.display = 'none';
     document.getElementById('gameArea').style.display = 'block';
     render(res.room);
@@ -34,11 +35,20 @@ socket.on('game_finished', ({ ranking }) => {
 
 function render(room) {
   const banner = document.getElementById('questionBanner');
+  
+  const bigQ = document.getElementById('bigQuestionArea');
+  const teamsRow = document.getElementById('teamsRow');
   if (room.currentQuestion) {
-    banner.innerHTML = `<div class="question-banner">${room.currentQuestion.text}</div>`;
+    banner.innerHTML = '';
+    teamsRow.style.display = 'none';
+    bigQ.style.display = 'flex';
+    bigQ.innerHTML = `<div>🤔 ${room.currentQuestion.text}</div>`;
   } else {
+    bigQ.style.display = 'none';
+    teamsRow.style.display = 'flex';
     banner.innerHTML = '';
   }
+
 
   const teamsRow = document.getElementById('teamsRow');
   teamsRow.innerHTML = '';
@@ -63,3 +73,20 @@ function render(room) {
     });
   });
 }
+
+socket.on('bomb_missed', () => {
+  const msgs = ["ههههههه ضيعتها! 🤣", "قصف في الهواء الطلق 😂", "جبت العيد 🤡", "يا خسارة الصاروخ 💥", "في البحر ولا فيهم 🌊", "شكل الرادار خربان 📡"];
+  const msg = msgs[Math.floor(Math.random() * msgs.length)];
+  const overlay = document.getElementById('funnyMessageOverlay');
+  overlay.textContent = msg;
+  overlay.style.display = 'block';
+  setTimeout(() => overlay.style.display = 'none', 4000);
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedDisplayCode = localStorage.getItem('display_code');
+  if (savedDisplayCode) {
+    document.getElementById('roomCodeInput').value = savedDisplayCode;
+    document.getElementById('joinBtn').click();
+  }
+});

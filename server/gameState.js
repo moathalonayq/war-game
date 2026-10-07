@@ -22,6 +22,7 @@ function createRoom({ unitConfig, adminPin } = {}) {
     unitConfig: unitConfig || DEFAULT_UNITS,
     teams: {}, // teamId -> team
     currentQuestion: null,
+    bomberTeamId: null,
     createdAt: Date.now(),
   };
   rooms.set(code, room);
@@ -33,7 +34,7 @@ function getRoom(code) {
 }
 
 function totalCells() {
-  return 25;
+  return 15;
 }
 
 function makeTeam(name) {
@@ -44,8 +45,8 @@ function makeTeam(name) {
     secret: Math.floor(1000 + Math.random() * 9000).toString(),
     socketId: null,
     connected: false,
-    board: Array.from({ length: 25 }, () => []), // كل مربع: قائمة وحدات {unit,value} سرية
-    hitBoard: Array(25).fill(null), // revealed state: null | {units:[...], hit:true|false}
+    board: Array.from({ length: 15 }, () => []), // كل مربع: قائمة وحدات {unit,value} سرية
+    hitBoard: Array(15).fill(null), // revealed state: null | {units:[...], hit:true|false}
     remaining: JSON.parse(JSON.stringify(DEFAULT_UNITS)),
     distributed: false,
     score: 0,
@@ -65,8 +66,8 @@ function distributeBoard(room, teamId, placements) {
   // placements: array of 25 entries, each an array of {unit} (can be empty, and a cell can hold multiple units)
   const team = room.teams[teamId];
   if (!team) throw new Error('فريق غير موجود');
-  if (!Array.isArray(placements) || placements.length !== 25) {
-    throw new Error('يجب تحديد 25 مربع');
+  if (!Array.isArray(placements) || placements.length !== 15) {
+    throw new Error('يجب تحديد 15 مربع');
   }
   const counts = {};
   for (const key of Object.keys(room.unitConfig)) counts[key] = 0;
@@ -110,7 +111,7 @@ function clearQuestion(room) {
 function executeBomb(room, targetTeamId, cellIndex) {
   const team = room.teams[targetTeamId];
   if (!team) throw new Error('فريق غير موجود');
-  if (cellIndex < 0 || cellIndex >= 25) throw new Error('مربع غير صالح');
+  if (cellIndex < 0 || cellIndex >= 15) throw new Error('مربع غير صالح');
   if (team.hitBoard[cellIndex]) throw new Error('تم قصف هذا المربع مسبقًا');
 
   const units = team.board[cellIndex] || [];

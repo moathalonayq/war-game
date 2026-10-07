@@ -3,7 +3,7 @@ const socket = io();
 let roomCode = null;
 let teamId = null;
 let unitConfig = null;
-let placements = Array(25).fill(null);
+let placements = Array(15).fill(null);
 let selectedUnit = null;
 let remaining = {};
 
@@ -41,6 +41,9 @@ function joinTeam(code, id) {
     if (!res.ok) return alert(res.error);
     roomCode = code;
     teamId = id;
+    localStorage.setItem('team_code', code);
+    localStorage.setItem('team_id', id);
+    localStorage.setItem('team_secret', secret);
     unitConfig = res.room.unitConfig;
     document.getElementById('teamNameLabel').textContent = res.team.name;
     joinScreen.style.display = 'none';
@@ -52,11 +55,7 @@ socket.on('room_updated', (room) => {
   if (!roomCode || room.code !== roomCode) return;
   unitConfig = room.unitConfig;
   renderForStatus(room);
-  if (room.status === 'playing' && room.currentQuestion) {
-    showQuestion(room.currentQuestion);
-  } else if (room.status === 'playing') {
-    document.getElementById('questionArea').innerHTML = '<p>بانتظار السؤال التالي...</p>';
-  }
+  if(room.status === 'playing') { renderBombingArea(room); }
   const myTeam = room.teams[teamId];
   if (myTeam) {
     document.getElementById('playScore').textContent = myTeam.score;
@@ -85,7 +84,7 @@ function renderForStatus(room) {
 }
 
 function initPlacement() {
-  placements = Array.from({ length: 25 }, () => []);
+  placements = Array.from({ length: 15 }, () => []);
   selectedUnit = Object.keys(unitConfig)[0];
   renderUnitPicker();
   renderPlacementGrid();
@@ -169,13 +168,10 @@ document.getElementById('submitBoardBtn').addEventListener('click', () => {
   );
 });
 
-function showQuestion(q) {
-  const area = document.getElementById('questionArea');
-  area.innerHTML = `<div class="question-banner">${q.text}</div>`;
-}
+
 
 document.getElementById('randomBtn').addEventListener('click', () => {
-  placements = Array.from({ length: 25 }, () => []);
+  placements = Array.from({ length: 15 }, () => []);
   const pool = [];
   Object.entries(unitConfig).forEach(([key, cfg]) => {
     for(let i=0; i<cfg.count; i++) pool.push({ unit: key });
@@ -184,7 +180,7 @@ document.getElementById('randomBtn').addEventListener('click', () => {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  pool.forEach((u, i) => placements[i % 25].push(u));
+  pool.forEach((u, i) => placements[i % 15].push(u));
   document.getElementById('placementMsg').textContent = '';
   renderUnitPicker();
   renderPlacementGrid();
@@ -192,9 +188,69 @@ document.getElementById('randomBtn').addEventListener('click', () => {
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {
-  placements = Array.from({ length: 25 }, () => []);
+  placements = Array.from({ length: 15 }, () => []);
   document.getElementById('placementMsg').textContent = '';
   renderUnitPicker();
   renderPlacementGrid();
   updateSubmitState();
+});
+
+function renderBombingArea(room) {
+  const area = document.getElementById('bombingArea');
+  if (room.bomberTeamId !== teamId) {
+    area.style.display = 'none';
+    return;
+  }
+  area.style.display = 'block';
+  const select = document.getElementById('teamTargetSelect');
+  const prev = select.value;
+  select.innerHTML = '';
+  Object.values(room.teams).forEach(t => {
+    if(t.id === teamId) return;
+    select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+  });
+  if (prev && select.querySelector(`option[value="${prev}"]`)) select.value = prev;
+
+  const grid = document.getElementById('bombGrid');
+  grid.innerHTML = '';
+  for(let i=0; i<15; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'board-cell';
+    cell.innerHTML = `<span class="cell-number">${i+1}</span>`;
+    cell.addEventListener('click', () => {
+      document.getElementById('bombMsg').textContent = 'جاري القصف...';
+      socket.emit('team_execute_bomb', { code: roomCode, teamId, targetTeamId: select.value, cellIndex: i }, (res) => {
+        if (!res.ok) {
+           document.getElementById('bombMsg').textContent = res.error;
+           setTimeout(()=> document.getElementById('bombMsg').textContent='', 2000);
+        } else {
+           document.getElementById('bombMsg').textContent = '';
+        }
+      });
+    });
+    grid.appendChild(cell);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const sc = localStorage.getItem('team_code');
+  const st = localStorage.getItem('team_id');
+  const ss = localStorage.getItem('team_secret');
+  if (sc && st && ss) {
+     socket.emit('team_join_room', { code: sc, teamId: st, secret: ss }, (res) => {
+        if(res.ok) {
+            roomCode = sc;
+            teamId = st;
+            unitConfig = res.room.unitConfig;
+            document.getElementById('teamNameLabel').textContent = res.team.name;
+            joinScreen.style.display = 'none';
+            renderForStatus(res.room);
+        } else {
+            // invalid session
+            localStorage.removeItem('team_code');
+            localStorage.removeItem('team_id');
+            localStorage.removeItem('team_secret');
+        }
+     });
+  }
 });

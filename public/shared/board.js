@@ -8,7 +8,7 @@ function unitIcon(unit) {
 function buildBoardGrid({ container, cellsData, onCellClick, mode }) {
   container.innerHTML = '';
   container.classList.add('board-grid');
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < 15; i++) {
     const cellData = cellsData ? cellsData[i] : null;
     const cell = document.createElement('div');
     cell.className = 'board-cell';

@@ -9,6 +9,8 @@ document.getElementById('createRoomBtn').addEventListener('click', () => {
   socket.emit('admin_create_room', { adminPin }, (res) => {
     if (!res.ok) return alert(res.error);
     roomCode = res.room.code;
+    localStorage.setItem('admin_code', roomCode);
+    if (typeof adminPin !== 'undefined') localStorage.setItem('admin_pin', adminPin);
     onRoomJoined(res.room);
   });
 });
@@ -20,6 +22,8 @@ document.getElementById('joinRoomBtn').addEventListener('click', () => {
   socket.emit('admin_join_room', { code, adminPin }, (res) => {
     if (!res.ok) return alert(res.error);
     roomCode = res.room.code;
+    localStorage.setItem('admin_code', roomCode);
+    if (typeof adminPin !== 'undefined') localStorage.setItem('admin_pin', adminPin);
     onRoomJoined(res.room);
   });
 });
@@ -193,9 +197,9 @@ function renderActiveQuestion(room) {
     b.textContent = t.name;
     b.style.margin = '4px';
     b.addEventListener('click', () => {
-      bombTargetTeamId = null;
-      renderTargetSelect(room, t.id);
-      alert(`${t.name} أجاب صح! اختر الآن الفريق المستهدف والمربع بالأسفل لتنفيذ القصف.`);
+      socket.emit('admin_assign_bomber', { code: roomCode, teamId: t.id }, (res) => {
+        if(res.ok) alert(`تم إعطاء صلاحية القصف للفريق: ${t.name}`);
+      });
     });
     btnRow.appendChild(b);
   });
@@ -269,3 +273,13 @@ function renderTeamsScoreRow(room) {
 }
 
 loadQuestionBank();
+
+window.addEventListener('DOMContentLoaded', () => {
+  const savedAdminCode = localStorage.getItem('admin_code');
+  const savedAdminPin = localStorage.getItem('admin_pin');
+  if (savedAdminCode) {
+    document.getElementById('joinCodeInput').value = savedAdminCode;
+    if (savedAdminPin) document.getElementById('joinPinInput').value = savedAdminPin;
+    document.getElementById('joinRoomBtn').click();
+  }
+});
