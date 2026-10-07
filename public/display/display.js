@@ -50,7 +50,6 @@ function render(room) {
   }
 
 
-  const teamsRow = document.getElementById('teamsRow');
   teamsRow.innerHTML = '';
   Object.values(room.teams).forEach((team) => {
     const panel = document.createElement('div');

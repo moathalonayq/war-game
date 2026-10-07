@@ -248,3 +248,4 @@ c = c + render_bombing_js
 write_file(p, c)
 
 print("Refactoring step 2 applied successfully.")
+
