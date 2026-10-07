@@ -13,9 +13,10 @@
   <div id="joinScreen" class="card">
     <h3>الانضمام إلى الغرفة</h3>
     <p>ادخل كود الغرفة الذي أعطاك إياه المدير</p>
-    <input id="roomCodeInput" placeholder="كود الغرفة" maxlength="4" style="text-transform:uppercase" />
-    <button id="fetchTeamsBtn">بحث</button>
-    <div id="teamSelectArea"></div>
+    <input id="roomCodeInput" placeholder="كود الغرفة" maxlength="4" style="text-transform:uppercase; margin-bottom:8px" />
+    <input id="teamSecretInput" placeholder="الرقم السري للفريق" style="margin-bottom:8px" />
+    <button id="fetchTeamsBtn">بحث عن الفرق</button>
+    <div id="teamSelectArea" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;"></div>
   </div>
 
   <div id="waitScreen" class="card" style="display:none">
@@ -25,6 +26,10 @@
 
   <div id="placementScreen" class="card" style="display:none">
     <h3>وزّع جيشك سرًا على الشبكة</h3>
+    <div style="margin-bottom: 10px; display: flex; gap: 8px;">
+      <button id="randomBtn" class="secondary" style="flex:1">توزيع عشوائي 🎲</button>
+      <button id="clearBtn" class="danger" style="flex:1">مسح اللوحة 🗑️</button>
+    </div>
     <div class="unit-picker" id="unitPicker"></div>
     <div id="placementGrid"></div>
     <div style="text-align:center;margin-top:16px">
