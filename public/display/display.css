@@ -43,18 +43,13 @@
 
 .huge-grid {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.huge-grid .board-grid {
+  display: grid !important;
   max-width: 100% !important;
   width: 100%;
-  flex: 1;
-  gap: 15px;
+  gap: 15px !important;
   grid-template-columns: repeat(5, 1fr) !important;
   grid-template-rows: repeat(3, 1fr) !important;
+  min-height: 0;
 }
 
 .huge-grid .board-cell {
@@ -147,4 +142,36 @@
   margin-bottom: -40px; 
   z-index: 10; 
   filter: drop-shadow(0px 10px 10px rgba(0,0,0,0.8));
+}
+
+
+/* Beautiful Table Design */
+.huge-grid .board-cell:not(.hit):not(.miss) {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.2);
+}
+
+.huge-grid .board-cell:not(.hit):not(.miss) .cell-number {
+  color: #0f172a !important;
+  font-family: Arial, sans-serif !important;
+  font-size: 6rem !important;
+  text-shadow: none !important;
+}
+
+.huge-grid .board-cell.hit {
+  background: #7f1d1d !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 4px 10px rgba(239,68,68,0.4);
+}
+
+.huge-grid .board-cell.miss {
+  background: #334155 !important;
+  border-color: #64748b !important;
+}
+
+.huge-grid .board-cell.hit .cell-number,
+.huge-grid .board-cell.miss .cell-number {
+  color: #ffffff !important;
+  opacity: 0.15 !important;
 }
