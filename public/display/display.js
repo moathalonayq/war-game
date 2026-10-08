@@ -17,7 +17,7 @@ document.getElementById('joinBtn').addEventListener('click', () => {
     roomCode = code;
     localStorage.setItem('display_code', code);
     document.getElementById('joinBar').style.display = 'none';
-    document.getElementById('gameArea').style.display = 'block';
+    document.getElementById('gameArea').style.display = 'flex';
     render(res.room);
   });
 });
