@@ -203,43 +203,6 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   updateSubmitState();
 });
 
-function renderBombingArea(room) {
-  const area = document.getElementById('bombingArea');
-  if (room.bomberTeamId !== teamId) {
-    area.style.display = 'none';
-    return;
-  }
-  area.style.display = 'block';
-  const select = document.getElementById('teamTargetSelect');
-  const prev = select.value;
-  select.innerHTML = '';
-  Object.values(room.teams).forEach(t => {
-    if(t.id === teamId) return;
-    select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
-  });
-  if (prev && select.querySelector(`option[value="${prev}"]`)) select.value = prev;
-
-  const grid = document.getElementById('bombGrid');
-  grid.innerHTML = '';
-  for(let i=0; i<15; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'board-cell';
-    cell.innerHTML = `<span class="cell-number">${i+1}</span>`;
-    cell.addEventListener('click', () => {
-      document.getElementById('bombMsg').textContent = 'جاري القصف...';
-      socket.emit('team_execute_bomb', { code: roomCode, teamId, targetTeamId: select.value, cellIndex: i }, (res) => {
-        if (!res.ok) {
-           document.getElementById('bombMsg').textContent = res.error;
-           setTimeout(()=> document.getElementById('bombMsg').textContent='', 2000);
-        } else {
-           document.getElementById('bombMsg').textContent = '';
-        }
-      });
-    });
-    grid.appendChild(cell);
-  }
-}
-
 window.addEventListener('DOMContentLoaded', () => {
   const sc = localStorage.getItem('team_code');
   const ss = localStorage.getItem('team_secret');
@@ -248,12 +211,9 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('teamSecretInput').value = ss;
   }
 });
-  }
-});
-
 
 document.getElementById('leaveRoomBtn').addEventListener('click', () => {
-  if(confirm('هل تريد الخروج من الغرفة؟')) {
+  if(confirm('هل متأكد من الخروج من الغرفة؟')) {
     localStorage.removeItem('team_code');
     localStorage.removeItem('team_id');
     localStorage.removeItem('team_secret');
