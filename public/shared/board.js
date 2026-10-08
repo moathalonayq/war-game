@@ -31,9 +31,7 @@ function buildBoardGrid({ container, cellsData, onCellClick, mode }) {
       cell.classList.add(cellData.hit ? 'hit' : 'miss');
       const icon = document.createElement('span');
       icon.className = 'cell-icon';
-      icon.textContent = cellData.hit
-        ? cellData.units.map((u) => unitIcon(u.unit)).join('')
-        : '✖️';
+      icon.textContent = cellData.hit ? cellData.units.map((u) => unitIcon(u.unit)).join('') : '\u274C';
       cell.appendChild(icon);
     }
 

@@ -8,6 +8,7 @@
 </head>
 <body>
 <div class="container">
+  <button id="leaveRoomBtn" style="position:absolute; top:20px; left:20px; z-index:1000; background:rgba(255,50,50,0.8); color:white; font-size:16px; border:none; border-radius:8px; padding:10px; cursor:pointer; display:none;" title="خروج من الغرفة">خروج</button>
   <h1>🎯 واجهة الفريق</h1>
 
   <div id="joinScreen" class="card">
@@ -41,15 +42,7 @@
   <div id="playScreen" class="card" style="display:none">
     <h3>الفريق: <span id="playTeamName"></span> | النقاط: <span id="playScore"></span></h3>
     
-    <div id="bombingArea" style="display:none; margin-top:20px; background:#475569; padding:15px; border-radius:8px;">
-      <h3 style="color:#4ade80">أنت من سيقصف الآن! 🚀</h3>
-      <label>اختر الفريق المستهدف:</label>
-      <select id="teamTargetSelect" style="margin-bottom:15px; font-size:1.1rem; padding:8px;"></select>
-      <div id="bombGrid" class="board-grid"></div>
-      <p id="bombMsg" style="color:#ef4444; margin-top:10px; font-weight:bold;"></p>
     </div>
-
-  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>

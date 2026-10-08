@@ -22,7 +22,7 @@ function createRoom({ unitConfig, adminPin } = {}) {
     unitConfig: unitConfig || DEFAULT_UNITS,
     teams: {}, // teamId -> team
     currentQuestion: null,
-    bomberTeamId: null,
+    
     createdAt: Date.now(),
   };
   rooms.set(code, room);

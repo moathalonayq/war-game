@@ -8,6 +8,7 @@
 </head>
 <body>
 <div class="container display-container">
+  <button id="leaveRoomBtn" style="position:absolute; top:20px; right:20px; z-index:1000; background:rgba(255,50,50,0.8); color:white; font-size:16px; border:none; border-radius:8px; padding:10px; cursor:pointer;" title="خروج من الغرفة">خروج</button>
   <button id="fullscreenBtn" style="position:absolute; top:20px; left:20px; z-index:1000; background:rgba(255,255,255,0.1); color:white; font-size:24px; border:none; border-radius:8px; padding:10px; cursor:pointer;" title="تكبير الشاشة">🔲</button>
   <div id="joinBar" class="card">
     <h3>شاشة العرض</h3>
@@ -15,13 +16,11 @@
     <button id="joinBtn">عرض</button>
   </div>
 
-  <div id="gameArea" style="display:none; width: 100%;">
+  <div id="gameArea" style="display:none; width: 100%; height: 100%;">
     <h1 style="text-align:center; font-size: 4rem;">🏆 مسابقة المحينك</h1>
     
   <div id="questionBanner"></div>
   <div id="bigQuestionArea" style="display:none; flex-direction:column; justify-content:center; align-items:center; height: 75vh; font-size:5rem; color:white; background:#1e3a8a; border-radius:25px; padding:40px; margin-top:20px; text-align:center; box-shadow: 0 10px 40px rgba(0,0,0,0.5);"></div>
-  
-  <div id="funnyMessageOverlay" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-size:6rem; font-weight:bold; z-index:100; background:rgba(0,0,0,0.9); color:#facc15; padding:80px; border-radius:40px; text-align:center; text-shadow: 3px 3px 15px #000; box-shadow: 0 0 50px rgba(0,0,0,0.9);"></div>
   
   <div class="teams-row" id="teamsRow"></div>
 

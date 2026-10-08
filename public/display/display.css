@@ -4,7 +4,7 @@
   max-width: 100% !important;
   width: 100vw;
   height: 100vh;
-  padding: 10px 20px !important;
+  padding: 0 !important; margin: 0 !important;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -19,10 +19,11 @@
 .teams-row {
   display: flex !important;
   flex: 1;
+  flex-direction: row !important;
   flex-wrap: nowrap;
   justify-content: center;
   align-items: stretch;
-  gap: 20px !important;
+  gap: 10px !important; margin: 0 !important;
   width: 100%;
 }
 
@@ -30,7 +31,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 20px !important;
+  padding: 10px !important;
   border-width: 3px !important;
 }
 
@@ -52,7 +53,8 @@
   width: 100%;
   height: 100%;
   gap: 15px;
-  grid-template-rows: repeat(3, 1fr) !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  grid-template-rows: repeat(5, 1fr) !important;
 }
 
 .huge-grid .board-cell {

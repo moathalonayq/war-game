@@ -38,7 +38,12 @@ document.getElementById('fetchTeamsBtn').addEventListener('click', () => {
 function joinTeam(code, id) {
   const secret = document.getElementById('teamSecretInput').value.trim();
   socket.emit('team_join_room', { code, teamId: id, secret }, (res) => {
-    if (!res.ok) return alert(res.error);
+    if (!res.ok) {
+        localStorage.removeItem('team_code');
+        localStorage.removeItem('team_id');
+        localStorage.removeItem('team_secret');
+        return alert(res.error);
+      }
     roomCode = code;
     teamId = id;
     localStorage.setItem('team_code', code);
@@ -47,7 +52,9 @@ function joinTeam(code, id) {
     unitConfig = res.room.unitConfig;
     document.getElementById('teamNameLabel').textContent = res.team.name;
     joinScreen.style.display = 'none';
+      document.getElementById('leaveRoomBtn').style.display = 'block';
     renderForStatus(res.room);
+              document.getElementById('leaveRoomBtn').style.display = 'block';
   });
 }
 
@@ -55,7 +62,7 @@ socket.on('room_updated', (room) => {
   if (!roomCode || room.code !== roomCode) return;
   unitConfig = room.unitConfig;
   renderForStatus(room);
-  if(room.status === 'playing') { renderBombingArea(room); }
+  
   const myTeam = room.teams[teamId];
   if (myTeam) {
     document.getElementById('playScore').textContent = myTeam.score;
@@ -65,6 +72,7 @@ socket.on('room_updated', (room) => {
 function renderForStatus(room) {
   const myTeam = room.teams[teamId];
   joinScreen.style.display = 'none';
+      document.getElementById('leaveRoomBtn').style.display = 'block';
   waitScreen.style.display = 'none';
   placementScreen.style.display = 'none';
   playScreen.style.display = 'none';
@@ -234,23 +242,21 @@ function renderBombingArea(room) {
 
 window.addEventListener('DOMContentLoaded', () => {
   const sc = localStorage.getItem('team_code');
-  const st = localStorage.getItem('team_id');
   const ss = localStorage.getItem('team_secret');
-  if (sc && st && ss) {
-     socket.emit('team_join_room', { code: sc, teamId: st, secret: ss }, (res) => {
-        if(res.ok) {
-            roomCode = sc;
-            teamId = st;
-            unitConfig = res.room.unitConfig;
-            document.getElementById('teamNameLabel').textContent = res.team.name;
-            joinScreen.style.display = 'none';
-            renderForStatus(res.room);
-        } else {
-            // invalid session
-            localStorage.removeItem('team_code');
-            localStorage.removeItem('team_id');
-            localStorage.removeItem('team_secret');
-        }
-     });
+  if (sc && ss) {
+    document.getElementById('roomCodeInput').value = sc;
+    document.getElementById('teamSecretInput').value = ss;
+  }
+});
+  }
+});
+
+
+document.getElementById('leaveRoomBtn').addEventListener('click', () => {
+  if(confirm('هل تريد الخروج من الغرفة؟')) {
+    localStorage.removeItem('team_code');
+    localStorage.removeItem('team_id');
+    localStorage.removeItem('team_secret');
+    location.reload();
   }
 });

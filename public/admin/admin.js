@@ -7,7 +7,11 @@ let bombTargetTeamId = null;
 document.getElementById('createRoomBtn').addEventListener('click', () => {
   const adminPin = document.getElementById('createPinInput').value.trim();
   socket.emit('admin_create_room', { adminPin }, (res) => {
-    if (!res.ok) return alert(res.error);
+    if (!res.ok) {
+      localStorage.removeItem('admin_code');
+      localStorage.removeItem('admin_pin');
+      return alert(res.error);
+    }
     roomCode = res.room.code;
     localStorage.setItem('admin_code', roomCode);
     if (typeof adminPin !== 'undefined') localStorage.setItem('admin_pin', adminPin);
@@ -20,7 +24,11 @@ document.getElementById('joinRoomBtn').addEventListener('click', () => {
   const adminPin = document.getElementById('joinPinInput').value.trim();
   if (!code) return;
   socket.emit('admin_join_room', { code, adminPin }, (res) => {
-    if (!res.ok) return alert(res.error);
+    if (!res.ok) {
+      localStorage.removeItem('admin_code');
+      localStorage.removeItem('admin_pin');
+      return alert(res.error);
+    }
     roomCode = res.room.code;
     localStorage.setItem('admin_code', roomCode);
     if (typeof adminPin !== 'undefined') localStorage.setItem('admin_pin', adminPin);
@@ -82,7 +90,11 @@ document.getElementById('addTeamBtn').addEventListener('click', () => {
   const name = document.getElementById('newTeamName').value.trim();
   if (!name) return;
   socket.emit('admin_add_team', { code: roomCode, name }, (res) => {
-    if (!res.ok) return alert(res.error);
+    if (!res.ok) {
+      localStorage.removeItem('admin_code');
+      localStorage.removeItem('admin_pin');
+      return alert(res.error);
+    }
     document.getElementById('newTeamName').value = '';
   });
 });
@@ -186,31 +198,7 @@ function renderActiveQuestion(room) {
     area.appendChild(ans);
   }
 
-  const label = document.createElement('p');
-  label.textContent = 'من أجاب صح؟ اختر الفريق الفائز بالسؤال (سيصبح هو من يقصف):';
-  area.appendChild(label);
-
-  const btnRow = document.createElement('div');
-  Object.values(room.teams).forEach((t) => {
-    const b = document.createElement('button');
-    b.textContent = t.name;
-    b.style.margin = '4px';
-    b.addEventListener('click', () => {
-      socket.emit('admin_assign_bomber', { code: roomCode, teamId: t.id }, (res) => {
-        if(res.ok) alert(`تم إعطاء صلاحية القصف للفريق: ${t.name}`);
-      });
-    });
-    btnRow.appendChild(b);
-  });
-  const noOne = document.createElement('button');
-  noOne.className = 'secondary';
-  noOne.textContent = 'لا أحد أجاب';
-  noOne.style.margin = '4px';
-  noOne.addEventListener('click', () => {
-    socket.emit('admin_clear_question', { code: roomCode });
-  });
-  btnRow.appendChild(noOne);
-  area.appendChild(btnRow);
+  
 
   const clearBtn = document.createElement('button');
   clearBtn.className = 'secondary';
@@ -258,17 +246,25 @@ function renderBombGrid() {
       if (team.hitBoard[i]) return;
       if (!confirm(`تأكيد قصف مربع رقم ${i + 1} في فريق ${team.name}؟`)) return;
       socket.emit('admin_execute_bomb', { code: roomCode, targetTeamId: teamId, cellIndex: i }, (res) => {
-        if (!res.ok) return alert(res.error);
+        if (!res.ok) {
+          localStorage.removeItem('admin_code');
+          localStorage.removeItem('admin_pin');
+          return alert(res.error);
+        }
         
         const log = document.getElementById('bombResultLog');
+        let msg = '';
         if (res.result.units.length === 0) {
           log.style.color = '#ef4444';
-          log.textContent = `🎯 نتيجة آخر قصف: المربع فارغ! (لا توجد وحدات)`;
+          msg = '🚨 المربع فارغ ❌';
         } else {
           log.style.color = '#4ade80';
-          const unitsString = res.result.units.map(u => window.BoardUtils.unitIcon(u.unit)).join(' ');
-          log.textContent = `🎯 نتيجة آخر قصف: تم تدمير [ ${unitsString} ] وخسارة ${res.result.value} نقطة!`;
+          const unitNames = { plane: 'طيارة', car: 'سيارة', ship: 'سفينة' };
+          const unitsString = res.result.units.map(u => `${unitNames[u.unit]} (${window.BoardUtils.unitIcon(u.unit)})`).join(' و ');
+          msg = `🚨 تم قصف وتدمير [ ${unitsString} ] وكسب ${res.result.value} نقطة! ✅`;
         }
+        log.textContent = msg;
+        alert(msg);
       });
     },
   });
@@ -293,7 +289,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (savedAdminCode) {
     document.getElementById('joinCodeInput').value = savedAdminCode;
     if (savedAdminPin) document.getElementById('joinPinInput').value = savedAdminPin;
-    document.getElementById('joinRoomBtn').click();
+    // document.getElementById("joinRoomBtn").click();
   }
 });
 
@@ -302,18 +298,5 @@ document.getElementById('leaveRoomBtn').addEventListener('click', () => {
     localStorage.removeItem('admin_code');
     localStorage.removeItem('admin_pin');
     location.reload();
-  }
-});
-
-
-socket.on('admin_bomb_log', ({ sourceName, targetName, cellIndex, result }) => {
-  const log = document.getElementById('bombResultLog');
-  if (result.units.length === 0) {
-    log.style.color = '#ef4444';
-    log.textContent = `🎯 قام فريق [${sourceName}] بقصف [${targetName}] (مربع ${cellIndex + 1}): المربع فارغ!`;
-  } else {
-    log.style.color = '#4ade80';
-    const unitsString = result.units.map(u => window.BoardUtils.unitIcon(u.unit)).join(' ');
-    log.textContent = `🎯 قام فريق [${sourceName}] بقصف [${targetName}] (مربع ${cellIndex + 1}): تم تدمير [ ${unitsString} ] وخسارة ${result.value} نقطة!`;
   }
 });

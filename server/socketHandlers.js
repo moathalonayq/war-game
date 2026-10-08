@@ -6,7 +6,6 @@ function roomSummary(room, isAdmin = false) {
     status: room.status,
     unitConfig: room.unitConfig,
     currentQuestion: room.currentQuestion,
-    bomberTeamId: room.bomberTeamId,
     teams: gs.publicTeamsView(room, { isAdmin }),
   };
 }
@@ -107,57 +106,12 @@ function registerSocketHandlers(io) {
       cb && cb({ ok: true });
     });
 
-    socket.on('admin_clear_question', ({ code }, cb) => {
+        socket.on('admin_clear_question', ({ code }, cb) => {
       const room = gs.getRoom(code);
       if (!room) return cb && cb({ ok: false, error: 'الغرفة غير موجودة' });
       gs.clearQuestion(room);
       broadcastRoom(io, room);
       cb && cb({ ok: true });
-    });
-
-    
-    socket.on('admin_assign_bomber', ({ code, teamId }, cb) => {
-      const room = gs.getRoom(code);
-      if (!room) return cb && cb({ ok: false, error: 'الغرفة غير موجودة' });
-      room.bomberTeamId = teamId;
-      room.currentQuestion = null; // إخفاء السؤال عند القصف
-      broadcastRoom(io, room);
-      cb && cb({ ok: true });
-    });
-
-    socket.on('team_execute_bomb', ({ code, teamId, targetTeamId, cellIndex }, cb) => {
-      try {
-        const room = gs.getRoom(code);
-        if (!room) throw new Error('الغرفة غير موجودة');
-        if (room.bomberTeamId !== teamId) throw new Error('لست الفريق المخول بالقصف حالياً');
-        
-        const sourceTeam = room.teams[teamId];
-        const targetTeam = room.teams[targetTeamId];
-        
-        const { result } = gs.executeBomb(room, targetTeamId, cellIndex);
-        room.bomberTeamId = null; // سحب الصلاحية بعد القصف
-        
-        if (!result.hit) {
-           io.to(room.code + '_public').emit('bomb_missed');
-        }
-        
-        // Notify admin about the team's bomb result
-        io.to(room.code + '_admin').emit('admin_bomb_log', {
-           sourceName: sourceTeam.name,
-           targetName: targetTeam.name,
-           cellIndex,
-           result
-        });
-        
-        broadcastRoom(io, room);
-        cb && cb({ ok: true, result });
-      } catch (e) {
-        cb && cb({ ok: false, error: e.message });
-      }
-    });
-      } catch (e) {
-        cb && cb({ ok: false, error: e.message });
-      }
     });
 
     socket.on('admin_execute_bomb', ({ code, targetTeamId, cellIndex }, cb) => {

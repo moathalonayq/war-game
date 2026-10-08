@@ -15,9 +15,7 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
-app.get('/', (req, res) => {
-  res.redirect('/admin');
-});
+
 
 app.get('/api/questions', async (req, res) => {
   try {
