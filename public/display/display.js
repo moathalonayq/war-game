@@ -32,7 +32,7 @@ socket.on('game_finished', ({ ranking }) => {
   const finishArea = document.getElementById('finishArea');
   finishArea.style.display = 'block';
   
-  finishArea.innerHTML = '<h1 style="text-align:center; font-size: 5rem; margin-top:20px; color:#fbbf24; text-shadow: 0 5px 15px rgba(0,0,0,0.8);">🎉 النتائج النهائية 🎉</h1><div id="podium" class="podium-container"></div>';
+  finishArea.innerHTML = '<h1 style="text-align:center; font-size: 5rem; margin-top:20px; color:#fbbf24; text-shadow: 0 5px 15px rgba(0,0,0,0.8);">🎉 النتائج النهائية 🎉</h1><div style="text-align:center; margin-top: 20px;"><button id="revealBtn" style="font-size: 24px; padding: 15px 40px; background: #2563eb; color: white; border: none; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(37,99,235,0.5); transition: background 0.3s;">عرض المركز التالي</button></div><div id="podium" class="podium-container"></div>';
   
   const podium = document.getElementById('podium');
   
@@ -62,31 +62,39 @@ socket.on('game_finished', ({ ranking }) => {
   `;
 
   // Control via Enter key
-  window.podiumSteps = [
-    { rankNum: 3, rankInfo: rank3 },
-    { rankNum: 1, rankInfo: rank1 },
-    { rankNum: 2, rankInfo: rank2 }
-  ];
+  window.podiumSteps = [{rankNum: 3, rankInfo: rank3}, {rankNum: 2, rankInfo: rank2}, {rankNum: 1, rankInfo: rank1}];
   window.currentRevealIndex = 0;
 });
 
-window.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    const finishArea = document.getElementById('finishArea');
-    if (finishArea && finishArea.style.display === 'block') {
-      if (window.podiumSteps && window.currentRevealIndex < window.podiumSteps.length) {
-        const step = window.podiumSteps[window.currentRevealIndex];
-        if (step.rankInfo) {
-          const el = document.getElementById(`step-${step.rankNum}`);
-          if (el) el.classList.add('revealed');
-          const medalEl = document.getElementById(`medal-${step.rankNum}`);
-          if (medalEl) setTimeout(() => medalEl.style.opacity = '1', 500);
-        }
-        window.currentRevealIndex++;
+
+window.revealNext = function() {
+  const finishArea = document.getElementById('finishArea');
+  if (finishArea && finishArea.style.display === 'block') {
+    if (window.podiumSteps && window.currentRevealIndex < window.podiumSteps.length) {
+      const step = window.podiumSteps[window.currentRevealIndex];
+      if (step.rankInfo) {
+        const el = document.getElementById(`step-${step.rankNum}`);
+        if (el) el.classList.add('revealed');
+        const medalEl = document.getElementById(`medal-${step.rankNum}`);
+        if (medalEl) setTimeout(() => medalEl.style.opacity = '1', 500);
+      }
+      window.currentRevealIndex++;
+      if (window.currentRevealIndex >= window.podiumSteps.length) {
+        const btn = document.getElementById('revealBtn');
+        if (btn) btn.style.display = 'none';
       }
     }
   }
+};
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') window.revealNext();
 });
+
+document.addEventListener('click', (e) => {
+  if(e.target && e.target.id === 'revealBtn') window.revealNext();
+});
+ document.addEventListener('click', (e) => { if(e.target && e.target.id === 'revealBtn') window.revealNext(); });
 
 function render(room) {
 
